@@ -3,7 +3,7 @@
 ## Introduction
 This document presents a description of the multi-connection BLE GATT client example for the ESP32. In this implementation, a single ESP32 working as a GATT client connects to three different GATT servers at the same time. This set up illustrates the use case of an ESP32 device acting in a way so that it receives data from different BLE sensors. The unique combination of ESP32’s BLE + Wi-Fi capabilities in addition to connection to multiple peripherals makes it a great candidate to serve as an IoT gateway.
 
-This example’s workflow is similar to the **GATT Client Example Walkthrough** and is shown in the figure below. However, in the multi-connection implementation, a GATT client searches for three specific server names and once that it has found them it opens a connection to all three of them one after the other. In code, each connection is handled separately with one Application Profile.
+This example’s workflow is similar to the [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough) and is shown in the figure below. However, in the multi-connection implementation, a GATT client searches for three specific server names and once that it has found them it opens a connection to all three of them one after the other. In code, each connection is handled separately with one Application Profile.
 
 Four ESP32 devices are needed in order to demonstrate this example, among which:
 
@@ -13,12 +13,12 @@ Four ESP32 devices are needed in order to demonstrate this example, among which:
 <img src="image/Multi_Connection_GATT_Client_Flowchart.png" width = "800" alt="Multi-Connection GATT Client Flowchart" align=center/>
 
 ## Includes
-The multi-connection example’s main source file is ``gattc_multi_connect.c``. For details, see Section **Includes** in **GATT Client Example Walkthrough**.
+The multi-connection example’s main source file is ``gattc_multi_connect.c``. For details, see Section [Includes](../gatt_client/Gatt_Client_Example_Walkthrough#Includes) in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
-## Main Entry Point
-See Section **Main Entry Point** in **GATT Client Example Walkthrough**.
+## Main_Entry_Point
+See Section [Main_Entry_Point](../gatt_client/Gatt_Client_Example_Walkthrough#Main_Entry_Point) in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
-## Implementation Procedure
+## Implementation_Procedure
 The GATT Client implementation includes the following steps:
 
 * system initialization,
@@ -28,7 +28,7 @@ The GATT Client implementation includes the following steps:
 * registering for notifications.
 
 ### Initializing
-See Section **Main Entry Point** in **GATT Client Example Walkthrough**.
+See Section **Main Entry Point** in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
 #### Application Profiles
 Application Profiles are a way to group functionality. They are designed so that each Application Profile connects to one peer device, that way the same ESP32 can connect to multiple devices by assigning one Application Profile to each one, as figure below shows. Each Application Profile creates a GATT interface to connect to other devices. The Application Profiles are defined by an ID number, there are three profiles in this example:
@@ -40,23 +40,23 @@ Application Profiles are a way to group functionality. They are designed so that
 #define PROFILE_C_APP_ID 2
 ```
 
-<img src="image/ESP32_GATT_Multi_Connect_Client_Application_Profiles.png" width = "800" alt="Multi-Connection GATT Client Flowchart" align=center/>
+<img src="image/ESP32_GATT_Multi_Connect_Client_Application_Profiles.png" width = "450" alt="Multi-Connection GATT Client Flowchart" align=center/>
 
 
 The ``esp_ble_gattc_app_register()`` function is used to register each Application Profile to the BLE stack. The registration operation generates a GATT interface that is returned as a parameter in a registration event. In addition, each Application Profile is also defined by a structure that can be used to keep the state of the application and update its parameters when new data is propagated by the stack.
 
-The Application Profiles in code are instances of a ``gattc_profile_inst`` structure. For details, see Section **Application Profiles** in **GATT Client Example Walkthrough**.
+The Application Profiles in code are instances of a ``gattc_profile_inst`` structure. For details, see Section **Application Profiles** in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
 ### Scanning
 
 #### Setting Scan Parameters
-See Section **Setting Scan Parameters** in **GATT Client Example Walkthrough**.
+See Section **Setting Scan Parameters** in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
 #### Starting to Scan
-See Section **Start Scanning** in **GATT Client Example Walkthrough**.
+See Section **Start Scanning** in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
 #### Getting Scan Results
-See Section **Getting Scan Results** in **GATT Client Example Walkthrough**.
+See Section **Getting Scan Results** in [GATT Client Example Walkthrough](../gatt_client/Gatt_Client_Example_Walkthrough).
 
 #### Name Comparison
 
