@@ -51,7 +51,7 @@ Windows 平台上的 Eclipse 配置
 
 	* 再次点击 “Add...”，输入名称 ``IDF_PATH``，并填写 ESP-IDF 的完整安装路径。``IDF_PATH`` 目录路径应使用正斜杠，而非反斜线，即 ``C:/Users/MyUser/Development/esp-idf``。
 
-	* 选择 PATH 环境变量，删除默认值，并将其替换为 ``C:\msys32\usr\bin;C:\msys32\mingw32\bin;C:\msys32\opt\xtensa-esp32-elf\bin``（如果您已经将 msys32 安装到其他目​​录，这里请自行调整）。
+	* 选择 PATH 环境变量，删除默认值，并将其替换为 ```C:\msys32\usr\bin;C:\msys32\mingw32\bin;C:\msys32\opt\xtensa-esp32-elf\bin```（如果您已经将 msys32 安装到其他目​​录，这里请自行调整）。
 
 
 * 点击 “C/C++ General” -> “Preprocessor Include Paths, Macros, etc.” 属性页。
@@ -78,4 +78,4 @@ Windows 平台的 Eclipse 介绍到此结束，下方将主要将介绍一些关
 * 首先，xtensa-esp32-elf-gcc 交叉编译器 *并非* Cygwin 工具链，但我们会在 Eclipse 中指定其为 Cygwin 工具链。主要原因在于：msys2 需要使用 Cygwin，并支持 Unix 风格的路径，即 ``/c/blah``，而非 ``c:/blah`` 或 ``c:\\blah``。特别需要说明的是，``xtensa-esp32-elf-gcc`` 会“告知” Eclipse 的 ``built-in compiler settings`` 功能，其内置 “include” 目录全部位于 ``/usr/`` 路径下，这也是 Eclipse 唯一可以解析的 ``Unix/Cygwin`` 风格路径。通过在 Eclipse 中指定 ``xtensa-esp32-elf-gcc`` 交叉编译器为 Cygwin 编译器，可以让 Eclipse 使用 cygpath 实用程序直接内部解析路径。
 
 
-* 在解析 ESP-IDF 的 make 结果时也经常会出现同样的问题。Eclipse 可以解析 make 的结果，查找头文件目录，但是无法脱离 ``cygpath``，直接解析类似 ``/c/blah`` 的目录。``Eclipse Build Output Parser`` 将利用该机制确认是否调用 ``cygpath``，但由于未知原因，目前 ESP-IDF 配置并不会触发该功能。出于这个原因，我们会使用 ``eclipse_make.py`` 包装脚本调用 make，然后使用 ``cygpath`` 处理 Eclipse 的结果。
+* 在解析 ESP-IDF 的 make 结果时也经常会出现同样的问题。Eclipse 可以解析 make 的结果，查找头文件目录，但是无法脱离 ``cygpath``，直接解析类似 ``/c/blah`` 的目录。``Eclipse Build Output Parser`` 将利用该机制确认是否调用 ``cygpath``，但由于未知原因，目前 ESP-IDF 配置并不会触发该功能。出于这个原因，我们会使用 ``eclipse_make.py`` 包装脚本调用 ``make``，然后使用 ``cygpath`` 处理 Eclipse 的结果。
