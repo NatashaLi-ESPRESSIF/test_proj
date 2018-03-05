@@ -51,7 +51,7 @@ Windows 平台上的 Eclipse 配置
 
 	* 再次点击 “Add...”，输入名称 ``IDF_PATH``，并填写 ESP-IDF 的完整安装路径。``IDF_PATH`` 目录路径应使用正斜杠，而非反斜线，即 ``C:/Users/MyUser/Development/esp-idf``。
 
-	* 选择 ``PATH`` 环境变量，删除默认值，并将其替换为 ``C:\msys32\usr\bin;C:\msys32\mingw32\bin;C:\msys32\opt\xtensa-esp32-elf\bin``（如果您已经将 msys32 安装到其他目​​录，这里请自行调整）。
+	* 选择 PATH 环境变量，删除默认值，并将其替换为 ``C:\msys32\usr\bin;C:\msys32\mingw32\bin;C:\msys32\opt\xtensa-esp32-elf\bin``（如果您已经将 msys32 安装到其他目​​录，这里请自行调整）。
 
 
 * 点击 “C/C++ General” -> “Preprocessor Include Paths, Macros, etc.” 属性页。
