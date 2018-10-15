@@ -8,16 +8,26 @@ Mconfig uses `ESP-Mesh App <https://github.com/EspressifApp/Esp32MeshForAndroid/
 Terminology
 ----
 
-.. image:: http://static.zybuluo.com/zzc/5bhlouom9u52ciclpkmk6ys4/Selection_357.png
-
+========================= ==========================================================
+Terminology               Description
+========================= ==========================================================
+Device                    Any devices that are connected to or can be connected to ESP-Mesh network.
+Whitelist                 A device list that is used to verify the devices during the process of the chained-way network configuration. It includes the device's MAC address list and the MD5 (Message-Digest Algorithm 5) value of the device's public key. The whitelist can be generated through Bluetooth scanning or imported by scanning the device's QR code.
+Configuration Information The configuration information related to Router and ESP-MESH.
+AES                       Short for Advanced Encryption Standard, and also known as Rijndael in the field of cryptography, AES is a block encryption standard employed by U.S. Federal Government.
+RSA                       It's a asymmetric encryption algorithm that is widely used in the areas of public-key encryption and e-commerce.
+CRC                       Short for Cyclic Redundancy Check, CRC is a hash function that can generate a short, fixed-length verification code based on the network data packet or PC files. It's mainly used to detect or check any possible errors during data transmission or after data are saved.
+========================= ==========================================================
 
 Process
 ---------
-
+s
 .. image:: http://static.zybuluo.com/zzc/81wfetbemid0wnruynzn3oox/image.png
 
-1. :ref:`Mconfig-BluFi`: The App implements network configuration for a single device through Bluetooth. It can transfer and add customized data segments to BLE advertising packet and configuration information;
-    a. The App scans the Bluetooth packet of the devices, and generates a white list, i.e. a device list naming the devices in alphabetical order (A to Z). It will then connect and transfer the configuration information and the device list to Device (A) that has the most intense signal; 
+Further to the above illustrated figure, please find the detailed description of the process below:  
+
+1. :ref:`Mconfig-BluFi`: The App implements network configuration for a single device through Bluetooth.
+    a. The App scans the Bluetooth packet of the devices, and generates a whitelist, i.e. a device list that includes Devices (A), (B), (C) and (D). It will then connect and transfer the configuration information and the device list to Device (A) that has the most intense signal; 
     b. Device (A) uses the configuration information to connect to AP;
     c. Device (A) checks if the configuration information is correct according to the status returned by AP;
     d. Device (A) returns the network configuration status to the App, and meanwhile:
@@ -74,7 +84,7 @@ If you want to customize network configuration, please be sure to:
 Mconfig-BluFi
 --------------
 
-Mconfig-BluFi is a network configuration method based on BluFi (a Bluetooth network configuration protocol defined by Espressif), with additional features such as advertising packet definition, RSA encryption and ID authentication. It generally involves the hardwares like mobiles, devices and routers. The network configuration process consists of four phases: Device Finding, Key Agreement, Data Communication, and Verification of Network Configuration.
+Mconfig-BluFi is a network configuration protocol based on BluFi (a Bluetooth network configuration protocol defined by Espressif), with additional features such as advertising packet definition, RSA encryption and ID authentication. It generally involves the hardwares like mobiles, devices and routers. The network configuration process consists of four phases: Device Finding, Key Agreement, Data Communication, and Verification of Network Configuration.
 
 .. image:: http://static.zybuluo.com/zzc/ebd1cbmlresw0lf7joffggeu/image.png
 
@@ -89,21 +99,33 @@ Mconfig-BluFi is a network configuration method based on BluFi (a Bluetooth netw
 Device Finding
 ^^^^^^^^^
 
-While the devices send Bluetooth advertising packets periodically through BLE, the App scans to receive the packets, and screens them based on their signal intensity. It then generates a white list to avoid adding wrong surrounding devices to its network. Please find the process shown below:
+While the devices send Bluetooth advertising packets periodically through BLE, the App scans to receive the packets, and screens them based on their signal intensity. It then generates a whitelist to avoid adding wrong surrounding devices to its network. Please find the process shown below:
 
 .. image:: http://static.zybuluo.com/zzc/780b7i6txyn8kkzyw3qqm77j/image.png
 
 There are two types of Bluetooth advertising packet: Advertising Data and Scan Response. Advertising Data is used to store the customized data of a specific product, while Scan Response is used to store the information of network configuration.
 
 - Advertising Data
-    1. The maximum length is 31 Byte;
+    1. The maximum length is 31 byte;
     2. The data format must meet the requirements of `Bluetooth Specification <https://www.libelium.com/forum/libelium_files/bt4_core_spec_adv_data_reference.pdf>`_.
 
 - Scan Response
-    1. 设备名称: 10 Byte，
-    2. 厂家信息: 14 Byte, see the details in the table below:
+    1. Device name uses 10 byte;
+    2. Manufacturer information uses 14 byte. See the details in the table below:
 
-    .. image:: http://static.zybuluo.com/zzc/ojeghgxxxw46najfmcy9lc3l/Selection_356.png
+========== ======== ====================
+Field      Length   Description
+========== ======== ====================
+company id 2 byte   The only ID assigned to SIG member companies by Bluetooth SIG 
+OUI        2 byte   The Mconfig Blufi ID that is used to filter broadcast packet, and it takes the form of 0x4d, 0x44, 0x46, i.e. "MDF"
+version    2 bit    The current version is 0
+whitelist  1 bit    Whether to enable whitelist filter
+security   1 bit    Whether to verify the validity of the devices in the whitelist
+reserved   4 bit    Reserved for future extension
+sta mac    6 byte   MAC address of the device sta
+tid        2 byte   Device type
+========== ======== ====================
+
 
 Key Agreement
 ^^^^^^^^^
@@ -121,17 +143,171 @@ The App combines the information of network configuration and the device list in
 
 - TLV (Type-length-value or Tag-length-value) is used to differentiate data:
 
-    .. image:: http://static.zybuluo.com/zzc/oux6p8ap5jo3sgdurd74w8ik/Selection_359.png
+======= ======= ============================
+Type    Length  Data
+======= ======= ============================
+1 byte  1 byte  Varies according to different types
+======= ======= ============================
 
 - Please find the table below with the detailed descriptions of different types of data fields:
     .. image:: http://static.zybuluo.com/zzc/rmk4xn2y8o9xmvm1a0084htn/image.png
+
+
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| Type         | Definition                             | Length (byte) | Description                                                                              |
++==============+========================================+===============+==========================================================================================+
+|                                                     Network Configuration Information                                                                            |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 1            | BLUFI_DATA_ROUTER_SSID                 | 32            | SSID of thr router                                                                       |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 2            | BLUFI_DATA_ROUTER_PASSWORD             | 64            | Password of the router                                                                   |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 3            | BLUFI_DATA_ROUTER_BSSID                | 6             | MAC address of router, there are more than one router with the same SSID, BSSID field    |
+|              |                                        |               | is mandatory. A risk that more than one root is connected with different BSSID will      |
+|              |                                        |               | appear. It means more than one mesh network is established with the same mesh ID.        |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 4            | BLUFI_DATA_MESH_ID                     | 6             | Mesh network identification. Nodes with the same mesh ID can communicate with each other.|                                          
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 5            | BLUFI_DATA_MESH_PASSWORD               | 64            | Password of mesh                                                                         |                            +--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 6            | BLUFI_DATA_MESH_TYPE                   | 1             | Device type (only support MESH_IDLE, MESH_ROOT, and MESH_NODE),                          |
+|              |                                        |               | MESH_ROOT and MESH_NODE is only used in no routing scheme                                |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+|                                                     Network Configuration Information                                                                            |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 16           | BLUFI_DATA_VOTE_PERCENTAGE             | 1             | Vote percentage threshold for the approval of being a root                               |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 17           | BLUFI_DATA_VOTE_MAX_COUNT              | 1             | Max vote times in self-healing                                                           |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 18           | BLUFI_DATA_BACKOFF_RSSI                | 1             | RSSI threshold for connecting to the root                                                |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 19           | BLUFI_DATA_SCAN_MIN_COUNT              | 1             | Minimum scan times before being a root                                                   |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 20           | BLUFI_DATA_SCAN_FAIL_COUNT             | 1             | Parent selection failure times. If the scan times reach this value, will disconnect with |
+|              |                                        |               | the associated children and start self-healing. Default: 60                              |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 21           | BLUFI_DATA_MONITOR_IE_COUNT            | 1             |                                                                                          |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 22           | BLUFI_DATA_ROOT_HEALING_MS             | 2             | Delay time before the start of root healing                                              |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 23           | BLUFI_DATA_ROOT_CONFLICTS_ENABLE       | 1             | Allow more than one root in one network                                                  |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 24           | BLUFI_DATA_FIX_ROOT_ENALBLE            | 1             | Enable fixed root setting for the device                                                 |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 25           | BLUFI_DATA_CAPACITY_NUM                | 2             | Mesh network capacity                                                                    |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 26           | BLUFI_DATA_MAX_LAYER                   | 1             | Configure max layer                                                                      |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 27           | BLUFI_DATA_MAX_CONNECTION              | 1             | Configure Mesh softAP max connection                                                     |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 28           | BLUFI_DATA_ASSOC_EXPIRE_MS             | 2             | Mesh softAP associate expired time                                                       |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 29           | BLUFI_DATA_BEACON_INTERVAL_MS          | 2             | Mesh softAP beacon interval                                                              |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 30           | BLUFI_DATA_PASSIVE_SCAN_MS             | 2             | Mesh sta passive scan time                                                               |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 31           | BLUFI_DATA_MONITOR_DURATION_MS         | 2             | Monitor duration of the parent's weak RSSI. Will switch to a better parent if the RSSI   |
+|              |                                        |               | continues to be weak during this duration_ms                                             |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 32           | BLUFI_DATA_CNX_RSSI                    | 1             | RSSI threshold for keeping a good connection with the parent                             |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 33           | BLUFI_DATA_SELECT_RSSI                 | 1             | RSSI threshold for parent selection. Its value should be greater than switch_rssi        |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 34           | BLUFI_DATA_SWITCH_RSSI                 | 1             | RSSI threshold for the reselection of a better parent                                    |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 35           | BLUFI_DATA_XON_QSIZE                   | 1             | The number of mesh buffer queues                                                         |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 36           | BLUFI_DATA_RETRANSMIT_ENABL            | 1             | Enable retransmission on mesh stack                                                      |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 37           | BLUFI_DATA_DROP_ENABLE                 | 1             | In case a root has been changed, enable the new root to drop the previous packet         |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+|                                                     Network Configuration Information                                                                            |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 64           | BLUFI_DATA_WHITELIST                   | 6 * N         | Device address                                                                           |
+|              |                                        | 32 * N        | Verify the validity of the public key to avoid forgery device attacks                    |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+
+
+test 1:
+
+
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| Type         | Definition                             | Length (byte) | Description                                                                              |
++==============+========================================+===============+==========================================================================================+
+|                                                     Network Configuration Information                                                                            |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 1            | BLUFI_DATA_ROUTER_SSID                 | 32            | SSID of thr router                                                                       |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 2            | BLUFI_DATA_ROUTER_PASSWORD             | 64            | Password of the router                                                                   |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 3            | BLUFI_DATA_ROUTER_BSSID                | 6             | MAC address of router, there are more than one router with the same SSID, BSSID field    |
+|              |                                        |               | is mandatory. A risk that more than one root is connected with different BSSID will      |
+|              |                                        |               | appear. It means more than one mesh network is established with the same mesh ID.        |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 4            | BLUFI_DATA_MESH_ID                     | 6             | Mesh network identification. Nodes with the same mesh ID can communicate with each other.|                                          
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 5            | BLUFI_DATA_MESH_PASSWORD               | 64            | Password of mesh                                                                         |                            +--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 6            | BLUFI_DATA_MESH_TYPE                   | 1             | Device type (only support MESH_IDLE, MESH_ROOT, and MESH_NODE),                          |
+|              |                                        |               | MESH_ROOT and MESH_NODE is only used in no routing scheme                                |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+
+
+test 2:
+
+
+
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| Type         | Definition                             | Length (byte) | Description                                                                              |
++==============+========================================+===============+==========================================================================================+
+| 1            | BLUFI_DATA_ROUTER_SSID                 | 32            | SSID of thr router                                                                       |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 2            | BLUFI_DATA_ROUTER_PASSWORD             | 64            | Password of the router                                                                   |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 3            | BLUFI_DATA_ROUTER_BSSID                | 6             | MAC address of router, there are more than one router with the same SSID, BSSID field    |
+|              |                                        |               | is mandatory. A risk that more than one root is connected with different BSSID will      |
+|              |                                        |               | appear. It means more than one mesh network is established with the same mesh ID.        |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 4            | BLUFI_DATA_MESH_ID                     | 6             | Mesh network identification. Nodes with the same mesh ID can communicate with each other.|                                          
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 5            | BLUFI_DATA_MESH_PASSWORD               | 64            | Password of mesh                                                                         |                            +--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 6            | BLUFI_DATA_MESH_TYPE                   | 1             | Device type (only support MESH_IDLE, MESH_ROOT, and MESH_NODE),                          |
+|              |                                        |               | MESH_ROOT and MESH_NODE is only used in no routing scheme                                |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+
+test 3：
+
+
+
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| Type         | Definition                             | Length (byte) | Description                                                                              |
++==============+========================================+===============+==========================================================================================+
+|                                                     Network Configuration Information                                                                            |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 1            | BLUFI_DATA_ROUTER_SSID                 | 32            | SSID of thr router                                                                       |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 2            | BLUFI_DATA_ROUTER_PASSWORD             | 64            | Password of the router                                                                   |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 3            | BLUFI_DATA_ROUTER_BSSID                | 6             | MAC address of router, there are more than one router with the same SSID, BSSID field    |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 4            | BLUFI_DATA_MESH_ID                     | 6             | Mesh network identification. Nodes with the same mesh ID can communicate with each other.|                                          
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 5            | BLUFI_DATA_MESH_PASSWORD               | 64            | Password of mesh                                                                         |                            +--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
+| 6            | BLUFI_DATA_MESH_TYPE                   | 1             | Device type (only support MESH_IDLE, MESH_ROOT, and MESH_NODE),                          |
++--------------+----------------------------------------+---------------+------------------------------------------------------------------------------------------+
 
 Verification of Network Configuration
 ^^^^^^^^^
 
 When the device receives the information of network configuration from AP, it will connect to AP to verify that the information is correct, and return the connection status as well as the verification result to the App, which is shown below:
 
-.. image:: http://static.zybuluo.com/zzc/jwpvk0a5dree9ikk2baq5wpx/image.png
+====== ============================ ====================
+Type   Definition                   Description
+====== ============================ ====================
+0      ESP_BLUFI_STA_CONN_SUCCESS   Connecting to router succeeds
+1      ESP_BLUFI_STA_CONN_FAIL      Connecting to router fails
+300    BLUFI_STA_PASSWORD_ERR       Password configuration error
+301    BLUFI_STA_AP_FOUND_ERR       Router is not found
+302    BLUFI_STA_TOOMANY_ERR        Reach router's maximum number of connections 
+====== ============================ ====================
 
 .. ---------------------- Mconfig-Chain --------------------------
 
@@ -156,6 +332,16 @@ Device Finding
 
     .. image:: http://static.zybuluo.com/zzc/2q1t2hfxem703lroc0s53udo/Selection_360.png
 
+=========== ================
+Type        Data
+=========== ================
+Element ID  0xDD
+Length      0X04
+OUI         0X18, 0XFE, 0X34
+Type        0X0F
+=========== ================
+
+
     - Master sets a window period, and only the request from Slave in this period can be accepted;
     - The identification of chained network configuration is sent through Wi-Fi beacon, and if a device is in STA mode only, Master can't be activated;
 
@@ -165,7 +351,7 @@ Device Finding
 Key Agreement
 ^^^^^^^^^
 
-1. Master receives the request for network configuration from Slave, and checks if Slave is in the white list. If the device ID authentication needs to be enabled, it is necessary to implement MD5 algorithms for the public RSA key received by the device, and check the validity of the RSA key against the white list;
+1. Master receives the request for network configuration from Slave, and checks if Slave is in the whitelist. If the device ID authentication needs to be enabled, it is necessary to implement MD5 algorithms for the public RSA key received by the device, and check the validity of the RSA key against the whitelist;
 2. Master removes Vendor IE identification of chained network configuration in Wi-Fi beacon;
 3. Master randomly generates 128-bit data as the key to communicate with Slave, encrypts it with the received public RSA key, and then send the encrypted key to Slave through ESP-NOW;
 4. Slave receives the Response from Master, and decrypts it with the private RSA key to acquire the communication key with Master.
@@ -173,9 +359,9 @@ Key Agreement
 Data Communication
 ^^^^^^^^^
 
-1. Master uses a key to encrypt the information of network configuration and the white list with AES algorithms, and send it to Slave through ESP-NOW;
+1. Master uses a key to encrypt the information of network configuration and the whitelist with AES algorithms, and send it to Slave through ESP-NOW;
 2. Slave uses the key to decrypt the data it receives with AES algorithms, and completes network configuration. It then stops to function as Slave and switches to Master mode.
 
 .. Note::
 
-     As ESP-NOW implements data encryption on the data link layer, it is recommended to use the identical key whenever encrypting a product, and the key should be written in flash or directly downloaded to the firmware.
+     As ESP-NOW implements data encryption on the data link layer, an identical key must be used for the communicated devices, and the key should be written in flash or directly downloaded to the firmware.
